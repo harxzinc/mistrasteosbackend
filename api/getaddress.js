@@ -3,8 +3,11 @@ const config = require('../config')
 
 async function getAddress({address}){
     const location = `https://maps.googleapis.com/maps/api/place/autocomplete/json?`
+    let data = {}
+    let response = {}
+
     try {
-        const response = await axios.get(location, {
+        response = await axios.get(location, {
             params:{
                 input:address,
                 key:config.key,
@@ -13,14 +16,10 @@ async function getAddress({address}){
             }
         })
         
-        let addr = []
-        const data = response.data.predictions.map((x) =>{
-
-            addr = x.description.split(',')
-
+        data = response.data.predictions.map((x) =>{
             return {
                 id:`${x.place_id}`,
-                name: `${addr[0].trim()} (${addr[1].trim()}-${addr[2].trim()})`
+                name: `${x.description}`
             }
         })
 
@@ -32,7 +31,6 @@ async function getAddress({address}){
     } catch (error) {
         return {
             status:false,
-            error
         }
     }
 }
@@ -42,5 +40,6 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
     res.setHeader('Allow', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.json(await getAddress({address: req.query.id}))
+    response = await getAddress({address: req.query.id})
+    res.json(response)
 }

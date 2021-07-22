@@ -4,6 +4,9 @@ const config = require('../config')
 async function getQuote({origin, destination}){
 
     const location = `https://maps.googleapis.com/maps/api/distancematrix/json?`
+    let distance = 0
+    let precio = 0
+
     try {
 
         const response = await axios.get(location, {
@@ -17,9 +20,15 @@ async function getQuote({origin, destination}){
         const precioBase = config.basePrice
         const distanciaBase = config.baseDistance
 
-        const distance = response.data.rows[0].elements[0].distance.value;
+        distance = response.data.rows[0].elements[0].distance.value;
 
-        const precio = (distance*precioBase) / distanciaBase
+        if(distance < 1) distance = 1
+
+        precio = (distance*precioBase) / distanciaBase
+
+        if(precio < config.basePriceLimit){
+            precio = config.basePriceLimit
+        }
 
         return {
             status:true,
